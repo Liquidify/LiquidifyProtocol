@@ -14,11 +14,17 @@ interface ILiquidifyOracle {
 
     function setDiscounts(uint ranting, uint discount) external;
 
+    function getSwapDiscount(address token) external returns (uint);
+
+    function setSwapDiscount(address token,uint dis) external;
+
     function getScale(address token) external view returns (uint);
+
+    function setScale(address token, uint scale) external;
 
     function getDecimals(address token) external view returns (uint);
 
-    function getToken(address token) external view returns (uint[8] memory);
+    function getToken(address token) external view returns (uint[10] memory);
 
     function getRate(address token) external view returns (uint);
 
@@ -31,4 +37,19 @@ interface ILiquidifyOracle {
     function getThreshold(address token) external view returns (uint);
 
     function setThreshold(address token, uint threshold) external;
+
+    function refreshPrice(address token) external;
+
+    function setActivitys(address[]memory tokens, uint[]memory amounts) external;
+
+    function stopActivity() external;
+
+    function stopTokenActivity(address token) external;
+
+    function setActivityAmount(address token,uint amount) external;
+
+    function getActivityInfo(address token) external view returns (bool,bool,uint);
+
+    function addSwap(address _token, uint _decimals, uint _scale, uint _rating
+    , uint _price, uint _rate, uint _fee, uint _threshold,uint _limit,uint _pledgeFee,uint _swapDiscount) external;
 }

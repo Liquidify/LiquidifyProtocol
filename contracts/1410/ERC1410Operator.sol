@@ -56,6 +56,7 @@ contract ERC1410Operator is ERC1410Basic {
     /// @param _partition The partition to which the operator is authorised
     /// @param _operator An address which is being authorised
     function authorizeOperatorByPartition(bytes32 _partition, address _operator) external {
+        require(_validPartition(_partition,msg.sender),"Invalid partition");
         partitionApprovals[msg.sender][_partition][_operator] = true;
         emit AuthorizedOperatorByPartition(_partition, _operator, msg.sender);
     }
@@ -64,6 +65,7 @@ contract ERC1410Operator is ERC1410Basic {
     /// @param _partition The partition to which the operator is de-authorised
     /// @param _operator An address which is being de-authorised
     function revokeOperatorByPartition(bytes32 _partition, address _operator) external {
+        require(_validPartition(_partition,msg.sender),"Invalid partition");
         partitionApprovals[msg.sender][_partition][_operator] = false;
         emit RevokedOperatorByPartition(_partition, _operator, msg.sender);
     }

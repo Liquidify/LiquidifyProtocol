@@ -15,7 +15,7 @@ contract LiquidifyPledge {
     }
 
     uint public rate;//0.3 3000
-    address private owner;
+    address public owner;
     address public token;
 
     mapping(address => order) private orders;
@@ -24,24 +24,32 @@ contract LiquidifyPledge {
         require(msg.sender == owner);
         _;
     }
+
+    event TransferOwnership(address indexed _user, address _old, address _new);
+    event SetRate(address indexed _user, uint _old, uint _new);
+    event SetToken(address indexed _user, uint _old, uint _new);
+
     constructor() {
         owner = msg.sender;
     }
 
     function transferOwnership(address newOwner) external onlyOwner {
         owner = newOwner;
+        emit TransferOwnership(msg.sender, msg.sender, newOwner);
     }
 
     function setRate(uint _rate) external onlyOwner {
+        emit SetRate(msg.sender, rate, _rate);
         rate = _rate;
     }
 
     function setToken(address _token) external onlyOwner {
+        emit SetToken(msg.sender, token, _token);
         token = _token;
     }
 
     function updateTime(address user) external onlyOwner {
-        orders[user].time = orders[user].time - (1 days);
+        orders[user].time = orders[user].time.sub(1 days);
     }
 
     function pledge(uint amount) external {
@@ -61,24 +69,28 @@ contract LiquidifyPledge {
             }
             orders[msg.sender].total = orders[msg.sender].total.add(amount);
         }
-        IERC20(token).transferFrom(msg.sender, address(this), amount);
+        bool success = IERC20(token).transferFrom(msg.sender, address(this), amount);
+        require(success,"Sending the token is abnormal");
     }
 
     function release(uint amount) external {
+        withdrawal();
         orders[msg.sender].total = orders[msg.sender].total.sub(amount);
         if (orders[msg.sender].total == 0) {
             orders[msg.sender].time = 0;
         } else {
             orders[msg.sender].time = block.timestamp;
         }
-        IERC20(token).transfer(msg.sender, amount);
+        bool success = IERC20(token).transfer(msg.sender, amount);
+        require(success,"Sending the token is abnormal");
     }
 
-    function withdrawal() external {
+    function withdrawal() public {
         uint d = (block.timestamp - orders[msg.sender].time) / (1 days);
         require(orders[msg.sender].total.mul(rate).mul(d).div(1000).div(365) > 0);
         orders[msg.sender].time = block.timestamp;
-        IERC20(token).transfer(msg.sender, orders[msg.sender].total.mul(rate).mul(d).div(1000).div(365));
+        bool success = IERC20(token).transfer(msg.sender, orders[msg.sender].total.mul(rate).mul(d).div(1000).div(365));
+        require(success,"Sending the token is abnormal");
     }
 
     function getIncome() external view returns (uint) {

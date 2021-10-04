@@ -13,6 +13,10 @@ interface IERC20 {
 
     function decimals() external view returns (uint256);
 
+    function name() external view returns (string memory);
+
+    function symbol() external view returns (string memory);
+
     /**
      * @dev Returns the amount of tokens owned by `account`.
      */
@@ -66,6 +70,8 @@ interface IERC20 {
     function mint(address account, uint256 amount) external;
 
     function burn(address account, uint256 amount) external;
+
+    function burn(uint256 amount) external;
 
     /**
      * @dev Emitted when `value` tokens are moved from one account (`from`) to

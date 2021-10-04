@@ -69,7 +69,7 @@ contract RegularToken is Token {
 
     function approve(address _spender, uint _value) public virtual override returns (bool) {
         allowed[msg.sender][_spender] = _value;
-        Approval(msg.sender, _spender, _value);
+        emit Approval(msg.sender, _spender, _value);
         return true;
     }
 
