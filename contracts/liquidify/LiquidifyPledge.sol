@@ -27,7 +27,7 @@ contract LiquidifyPledge {
 
     event TransferOwnership(address indexed _user, address _old, address _new);
     event SetRate(address indexed _user, uint _old, uint _new);
-    event SetToken(address indexed _user, uint _old, uint _new);
+    event SetToken(address indexed _user, address _old, address _new);
 
     constructor() {
         owner = msg.sender;

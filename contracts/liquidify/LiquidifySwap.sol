@@ -33,7 +33,7 @@ contract LiquidifySwap is ILiquidifySwap {
     ILiquidifyOracle public oracle;
     IERC1410 public LFY;
     IERC20 public LAT;
-    address v2Pool;
+    address public v2Pool;
     address private  owner;
     bool public stop;//true
     bool public swapStop;//true
@@ -68,19 +68,23 @@ contract LiquidifySwap is ILiquidifySwap {
     }
 
     function setV2Pool(address _v2Pool) external virtual override onlyOwner {
+        emit UpdateV2Pool(msg.sender, v2Pool, _v2Pool);
         v2Pool = _v2Pool;
     }
 
     function updateStop() external virtual override onlyOwner {
         stop = !stop;
+        emit UpdateStop(msg.sender, stop);
     }
 
     function updateSwapStop() external virtual override onlyOwner {
         swapStop = !swapStop;
+        emit UpdateSwapStop(msg.sender, swapStop);
     }
 
     function transferOwnership(address newOwner) external onlyOwner {
         owner = newOwner;
+        emit TransferOwnership(msg.sender, msg.sender, newOwner);
     }
 
     function swapIn(address token, uint amount) external virtual override stopSwap {
@@ -93,25 +97,25 @@ contract LiquidifySwap is ILiquidifySwap {
 
         uint latAmount = amount.mul(oracle.getPrice(token)).div(oracle.getPrice(address(LAT)))
         .mul(10 ** LAT.decimals()).div(10 ** oracle.getDecimals(token));
-        uint fee = latAmount.mul(discount).div(10000).mul(t[6]).div(10000);
+        uint fee = latAmount.mul(discount).mul(t[6]).div(10000).div(10000);
         //send token
         LAT.mint(msg.sender, latAmount.mul(discount).div(10000).sub(fee));
         LAT.mint(v2Pool, fee);
         //activity
-        uint lfyAmount = activityEx(token,latAmount.mul(discount).div(10000).mul(scale).div(10000));
+        uint lfyAmount = activityEx(token, latAmount.mul(discount).mul(scale).div(10000).div(10000));
         bool success = IERC20(token).transferFrom(msg.sender, address(this), amount);
-        require(success,"Sending the token is abnormal");
+        require(success, "Sending the token is abnormal");
         pools[token].amount = pools[token].amount.add(amount);
 
         emit SwapIn(msg.sender, token, amount, latAmount.mul(discount).div(10000).sub(fee)
         , lfyAmount, fee);
     }
 
-    function activityEx(address token,uint lfyAmount) private returns(uint) {
+    function activityEx(address token, uint lfyAmount) private returns (uint) {
         (bool activityStop,bool start,uint total) = oracle.getActivityInfo(token);
-        if(!activityStop && start && total >= lfyAmount){
+        if (!activityStop && start && total >= lfyAmount) {
             LFY.mint(msg.sender, lfyAmount);
-            oracle.setActivityAmount(token,total.sub(lfyAmount));
+            oracle.setActivityAmount(token, total.sub(lfyAmount));
             return lfyAmount;
         }
         return 0;
@@ -129,11 +133,11 @@ contract LiquidifySwap is ILiquidifySwap {
         require(pools[token].amount >= amount.mul(10000).div(t[9]), "Insufficient tokens in the pool");
         pools[token].amount = pools[token].amount.sub(amount.mul(10000).div(t[9]));
         bool success = IERC20(token).transfer(msg.sender, amount.mul(10000).div(t[9]));
-        require(success,"Sending the token is abnormal");
+        require(success, "Sending the token is abnormal");
         //LAT.burn(msg.sender, latAmount);
         //to v2 pool
         bool latSuccess = LAT.transferFrom(msg.sender, v2Pool, latAmount.add(fee));
-        require(latSuccess,"Sending the token is abnormal");
+        require(latSuccess, "Sending the token is abnormal");
         emit SwapOut(msg.sender, token, amount.mul(10000).div(t[9]), latAmount.add(fee), fee);
     }
 
@@ -164,7 +168,7 @@ contract LiquidifySwap is ILiquidifySwap {
         token : token,
         amount : amount,
         latAmount : latAmount.mul(discount).div(10000),
-        lfyAmount : latAmount.mul(discount).div(10000).mul(scale).div(10000),
+        lfyAmount : latAmount.mul(discount).mul(scale).div(10000).div(10000),
         rate : oracle.getRate(token),
         time : block.timestamp,
         status : uint8(1)
@@ -178,8 +182,7 @@ contract LiquidifySwap is ILiquidifySwap {
         LAT.mint(msg.sender, o.latAmount.sub(o.latAmount.mul(fee).div(10000)));
         LAT.mint(v2Pool, o.latAmount.mul(fee).div(10000));
         LFY.mint(msg.sender, o.latAmount.mul(scale).div(10000));
-        bool success = IERC20(token).transferFrom(msg.sender, address(this), amount);
-        require(success,"Sending the token is abnormal");
+        require(IERC20(token).transferFrom(msg.sender, address(this), amount), "Sending the token is abnormal");
         emit SynthetizeIn(msg.sender, token, amount, o.latAmount.sub(o.latAmount.mul(fee).div(10000))
         , o.lfyAmount, users[msg.sender].tokenIndex[token], o.latAmount.mul(fee).div(10000));
     }
@@ -199,10 +202,10 @@ contract LiquidifySwap is ILiquidifySwap {
         uint fee = o.latAmount.mul(oracle.getFee(token)).div(10000);
         //to v2 pool
         bool success = LAT.transferFrom(msg.sender, v2Pool, o.latAmount.add(interest).add(fee));
-        require(success,"Sending the token is abnormal");
+        require(success, "Sending the token is abnormal");
         LFY.burn(msg.sender, o.lfyAmount);
         bool TSuccess = IERC20(token).transfer(msg.sender, o.amount);
-        require(TSuccess,"Sending the token is abnormal");
+        require(TSuccess, "Sending the token is abnormal");
         pledgePools[token].amount = pledgePools[token].amount.sub(o.amount);
         emit SynthetizeOut(msg.sender, token, o.amount, o.latAmount.add(interest).add(fee), o.lfyAmount, index, fee);
     }
@@ -219,7 +222,7 @@ contract LiquidifySwap is ILiquidifySwap {
         return (users[msg.sender].total, users[msg.sender].tokenIndex[token]);
     }
 
-    function getStopInfo() external view virtual override  returns (bool,bool){
-        return(stop,swapStop);
+    function getStopInfo() external view virtual override returns (bool, bool){
+        return (stop, swapStop);
     }
 }

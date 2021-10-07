@@ -36,4 +36,9 @@ interface ILiquidifySwap {
 
     event SynthetizeIn(address indexed _user, address _token, uint _amount, uint _latAmount, uint _lfyAmount, uint _orderId, uint _fee);
     event SynthetizeOut(address indexed _user, address _token, uint _amount, uint _latAmount, uint _lfyAmount, uint _orderId, uint _fee);
+
+    event TransferOwnership(address indexed _user, address _old, address _new);
+    event UpdateV2Pool(address indexed _user ,address _old,address _new);
+    event UpdateStop(address indexed _user,bool _status);
+    event UpdateSwapStop(address indexed _user,bool _status);
 }

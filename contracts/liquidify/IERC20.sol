@@ -29,7 +29,7 @@ interface IERC20 {
      *
      * Emits a {Transfer} event.
      */
-    function transfer(address recipient, uint256 amount) external;
+    function transfer(address recipient, uint256 amount) external returns(bool);
 
     /**
      * @dev Returns the remaining number of tokens that `spender` will be
@@ -65,7 +65,7 @@ interface IERC20 {
      *
      * Emits a {Transfer} event.
      */
-    function transferFrom(address sender, address recipient, uint256 amount) external;
+    function transferFrom(address sender, address recipient, uint256 amount) external returns(bool);
 
     function mint(address account, uint256 amount) external;
 

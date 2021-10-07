@@ -26,6 +26,9 @@ contract LiquidityAcceleratorToken is UnboundedRegularToken {
     mapping(address => bool) updaters;
     mapping(uint => Limit) limits;
 
+    event TransferOwnership(address indexed _user, address _old, address _new);
+    event UpdateMiner(address indexed _user, bool _status);
+    event UpdateUpdater(address indexed _user, bool _status);
     modifier onlyOwner {
         require(msg.sender == owner);
         _;
@@ -44,19 +47,22 @@ contract LiquidityAcceleratorToken is UnboundedRegularToken {
         owner = msg.sender;
         v2Pool = _v2Pool;
         maxSupply = 45 * 10 ** 24;
-        _mint(msg.sender,585 * 10**22);
+        _mint(msg.sender, 585 * 10 ** 22);
     }
 
     function transferOwnership(address newOwner) external onlyOwner {
         owner = newOwner;
+        emit TransferOwnership(msg.sender, msg.sender, newOwner);
     }
 
     function updateMiner(address _minter) external onlyOwner {
         minters[_minter] = !minters[_minter];
+        emit UpdateMiner(_minter, minters[_minter]);
     }
 
     function updateUpdater(address _updater) external onlyOwner {
         updaters[_updater] = !updaters[_updater];
+        emit UpdateUpdater(_updater, updaters[_updater]);
     }
 
     function _mint(address account, uint256 amount) internal {
