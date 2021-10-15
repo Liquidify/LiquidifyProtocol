@@ -2,14 +2,15 @@
 pragma solidity ^0.7.0;
 
 import "@openzeppelin/contracts/math/SafeMath.sol";
-import "./IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "../1410/IERC1410.sol";
+import "./ILATERC20.sol";
 import "./ILiquidifyOracle.sol";
 import "./ILiquidifySwap.sol";
 
 contract LiquidifySwap is ILiquidifySwap {
     using SafeMath for uint256;
-
+    using SafeERC20 for IERC20;
     struct pool {
         uint amount;
     }
@@ -32,7 +33,7 @@ contract LiquidifySwap is ILiquidifySwap {
 
     ILiquidifyOracle public oracle;
     IERC1410 public LFY;
-    IERC20 public LAT;
+    ILATERC20 public LAT;
     address public v2Pool;
     address private  owner;
     bool public stop;//true
@@ -59,7 +60,7 @@ contract LiquidifySwap is ILiquidifySwap {
     constructor(address _lfy, address _lat, address _oracle, address _v2Pool) {
         oracle = ILiquidifyOracle(_oracle);
         LFY = IERC1410(_lfy);
-        LAT = IERC20(_lat);
+        LAT = ILATERC20(_lat);
         v2Pool = _v2Pool;
     }
 
