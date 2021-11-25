@@ -70,7 +70,7 @@ contract LiquidifyPledge {
             orders[msg.sender].total = orders[msg.sender].total.add(amount);
         }
         bool success = IERC20(token).transferFrom(msg.sender, address(this), amount);
-        require(success,"Sending the token is abnormal");
+        require(success, "Sending the token is abnormal");
     }
 
     function release(uint amount) external {
@@ -82,15 +82,16 @@ contract LiquidifyPledge {
             orders[msg.sender].time = block.timestamp;
         }
         bool success = IERC20(token).transfer(msg.sender, amount);
-        require(success,"Sending the token is abnormal");
+        require(success, "Sending the token is abnormal");
     }
 
     function withdrawal() public {
         uint d = (block.timestamp - orders[msg.sender].time) / (1 days);
-        require(orders[msg.sender].total.mul(rate).mul(d).div(1000).div(365) > 0);
-        orders[msg.sender].time = block.timestamp;
-        bool success = IERC20(token).transfer(msg.sender, orders[msg.sender].total.mul(rate).mul(d).div(1000).div(365));
-        require(success,"Sending the token is abnormal");
+        if (orders[msg.sender].total.mul(rate).mul(d).div(1000).div(365) > 0) {
+            orders[msg.sender].time = block.timestamp;
+            bool success = IERC20(token).transfer(msg.sender, orders[msg.sender].total.mul(rate).mul(d).div(1000).div(365));
+            require(success, "Sending the token is abnormal");
+        }
     }
 
     function getIncome() external view returns (uint) {
